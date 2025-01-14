@@ -43,7 +43,7 @@ class App(customtkinter.CTk):
         # Sidebar frame => New_project frame
         self.new_project_frame = customtkinter.CTkFrame(self.frame1, corner_radius=10, fg_color="transparent")
         # Sidebar frame => Project_list frame
-        self.project_list_frame = customtkinter.CTkFrame(self.frame1, corner_radius=10, fg_color="transparent", border_width=1, border_color="darkgray")
+        self.project_list_frame = customtkinter.CTkScrollableFrame(self.frame1, corner_radius=10, fg_color="transparent", scrollbar_button_color="black")
         # Sidebar frame => Progress bar frame
         self.progressbar_frame = customtkinter.CTkFrame(self.frame1, corner_radius=10, fg_color="transparent", height=50, width=300)
         # Sidebar frame => Progress bar frame => left
@@ -55,18 +55,24 @@ class App(customtkinter.CTk):
         # Top frame
         self.frame2 = customtkinter.CTkFrame(self, height=50, corner_radius=0, fg_color="transparent")
         # Top frame => Project Title
-        self.project_title = customtkinter.CTkLabel(self.frame2, text="Project 1", font=("Terminal", 50))
+        self.project_title = customtkinter.CTkLabel(self.frame2, text=None, font=("Terminal", 50))
+        self.project_title.grid()
+        
         # Bottom frame
         self.frame3 = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent", border_width=0)
         # Bottom frame => Inserter frame
         self.inserter_frame = customtkinter.CTkFrame(self.frame3, height=100, corner_radius=10, fg_color="black")
+        # Bottom frame => task_display_frame
+        self.task_display_frame = customtkinter.CTkScrollableFrame(
+                                                                    self.frame3, corner_radius=10, fg_color="transparent", 
+                                                                    scrollbar_button_color="black")
 
         # ######################################################
         # Grid configuration(Frames and Subframes) and placement
         # ######################################################
 
         # Sidebar frame
-        self.frame1.rowconfigure((1,2), weight=1)
+        self.frame1.rowconfigure(2, weight=1)
         self.frame1.columnconfigure(0, weight=1, minsize=270)
         self.frame1.grid(row=0, column=0, rowspan=2, padx=(5,2.5), pady=(5,2.5), sticky="nsew")
         # New project button
@@ -82,9 +88,10 @@ class App(customtkinter.CTk):
                                                     self.new_project_frame, text="Delete Project", width=80, height=35, 
                                                     font=("Calibri",15, "bold"), command=None, fg_color="transparent", border_color="darkgray", border_width=2, hover_color=("crimson"))
         self.delete_project_button.grid(row=1, padx=(20,20), pady=(10,20), sticky="nsew", )
-        # Projects list
-
-
+        # Projects list frame
+        self.project_list_frame.rowconfigure(0, weight=1)
+        self.project_list_frame.columnconfigure(0, weight=1)
+        self.project_list_frame.grid(row=1, sticky="nsew")
         
         # Progress bar grid configure
         self.progressbar_frame.rowconfigure((0,1), weight=0)
@@ -103,8 +110,8 @@ class App(customtkinter.CTk):
         self.progressbar.grid(padx=(5,5), pady=(5,5), sticky="se")
 
         # Top frame
-        self.frame2.rowconfigure(0, weight=1)
-        self.frame2.columnconfigure(0, weight=1)
+        self.frame2.rowconfigure(1, weight=0)
+        self.frame2.columnconfigure(0, weight=0)
         self.frame2.grid(row=0, column=1, padx=(2.5,5), pady=(5,25), sticky="nsew")
         # Top frame => Project title
         self.project_title.grid(padx=(10,0), sticky="w")
@@ -136,10 +143,7 @@ class App(customtkinter.CTk):
                                                     font=("Calibri",15, "bold"), command=self.clear_all_tasks)
         # Delete Button placement
         self.delete_button.grid(row=0, column=2, padx=(0, 10), pady=(10, 10), sticky="e")
-        # frame3 => task_display_frame
-        self.task_display_frame = customtkinter.CTkScrollableFrame(
-                                                                    self.frame3, corner_radius=10, fg_color="transparent", 
-                                                                    scrollbar_button_color="black")
+
         # Bottom frame => Task display frame
         self.task_display_frame.rowconfigure(1, weight=0)
         self.task_display_frame.columnconfigure((0,1), weight=1)
@@ -148,13 +152,32 @@ class App(customtkinter.CTk):
         # ########################
         # Functions and attributes
         # ########################
-
-        # All Projects data from local file
         self.temp_data = globals()["data"]
+        # -----------------
+        # Project variables
+        # -----------------
+        # All Projects data from local file as list
+        self.temp_project_names = globals()["project_names"]
+        if self.temp_project_names:
+            self.curr_project = self.temp_project_names[-1]
+        # List for storing Project objects
+        self.project_objects = list()
+
+        # -----------------
+        # taskbar variables
+        # -----------------
         # List of taskbar key-value pair
-        self.temp_data_list = self.temp_data["Project 1"]
+        self.temp_data_list = self.temp_data[self.curr_project]
         # List for storing taskbar objects
         self.objects_list = list()
+
+        # Adds title
+        self.title_maker(self.curr_project)
+
+    # To change title
+    def title_maker(self, title):
+        if title:
+            self.project_title.configure(text=title)
 
     # Appends a new task at the end
     def add_new_task(self):
@@ -258,57 +281,78 @@ class App(customtkinter.CTk):
         obj.checkbox.grid(row=row_number, column=0, padx=(10, 0), pady=(10, 10), sticky="w")
         obj.task_del_button.grid(row=row_number, column=1, padx=(0, 10), pady=(0,0), sticky="e")
 
-    def forget_project_bar(self, obj):
+    def project_bar_maker(self, proj_row=None):
+        if proj_row:
+            name = self.temp_project_names[proj_row]
+            obj = Project_Bar(self.project_list_frame, proj_row, name)
+            self.place_project_bar(obj, proj_row)
+            self.project_objects.append(obj) 
+        else:
+            for proj_row, name in enumerate(self.temp_project_names):
+                obj = Project_Bar(self.project_list_frame, proj_row, name)
+                self.place_project_bar(obj, proj_row)
+                self.project_objects.append(obj)
+
+    def forget_project_bar(self, proj_obj):
         ...
-    def place_project_bar(self, obj):
-        ...
+    def place_project_bar(self, proj_obj, proj_row):
+        proj_obj.row_number = proj_row
+        proj_obj.project_bar_frame.grid(row=proj_row, padx=(10, 10), pady=(5, 5), sticky="nsew")
+        proj_obj.radio_button.grid(row=proj_row, padx=(10, 10), pady=(10, 10), sticky="nsew")
         
 # For creating taskbar objects
 class Taskbar():
-    def __init__(self, task_display_frame,row_number, task, value):
+    def __init__(self, task_display_frame, row_number, task, value):
         
         self.row_number = row_number
         self.task = task
         self.value = value
-
         self.checkbox_frame = customtkinter.CTkFrame(
-                                                    task_display_frame, corner_radius=10, border_color="darkgray", 
-                                                    border_width=1, fg_color="transparent")
+                                                task_display_frame, corner_radius=10, border_color="darkgray", 
+                                                border_width=1, fg_color="transparent")
 
         self.checkbox_frame.rowconfigure(0, weight=0)
         self.checkbox_frame.columnconfigure((0,1), weight=1)
-
         self.checkbox = customtkinter.CTkCheckBox(
-                                                self.checkbox_frame, text=f"{task}", font=("Consolas", 18, "bold"), onvalue=1, offvalue=0, 
+                                                self.checkbox_frame, text=task, font=("Consolas", 18, "bold"), onvalue=1, offvalue=0, 
                                                 command=lambda:app.mark_checker(self),checkbox_height=22, checkbox_width=22, 
                                                 corner_radius=5, border_width=3, variable=customtkinter.IntVar(value=value))
 
         self.task_del_button = customtkinter.CTkButton(
-                                                        self.checkbox_frame, text="-", width=10, font=("Calibri",15, "bold"), fg_color="black", 
-                                                        corner_radius=10, command=lambda:app.remove_task(self), hover_color="crimson")
+                                                self.checkbox_frame, text="-", width=10, font=("Calibri",15, "bold"), fg_color="black", corner_radius=10, command=lambda:app.remove_task(self), hover_color="crimson")
         
     # Destroys the taskbar frame and all child widgets
     def destruct(self):
         self.checkbox_frame.destroy()
 
 class Project_Bar():
-    def __init__(self, parent_frame, row_num, project_name, value):
-        self.row_num = row_num
+    def __init__(self, project_list_frame, proj_row, project_name, value=0):
+        self.row_num = proj_row
         self.project_name = project_name
         self.value = value
-        self.project_bar_frame = customtkinter.CTkFrame(
-                                                    parent_frame, corner_radius=10, border_color="darkgray", 
-                                                    border_width=1, fg_color="transparent")
-        self.checkbox_frame.rowconfigure(0, weight=0)
-        self.checkbox_frame.columnconfigure((0,1), weight=1)
+        self.text_color ="darkgray"
 
-        self.radio_button1 = customtkinter.CTkRadioButton(master=self.project_list_frame, value={}, text={}, text_color="white", font=("Calibri",20, "bold"), border_color="white")
+        self.radio_var = customtkinter.IntVar()
         
-
+        if self.project_name == app.curr_project:
+            self.radio_var.set(1)
+            self.text_color = "#39C288"
+        self.project_bar_frame = customtkinter.CTkFrame(
+                                                    project_list_frame, corner_radius=10, border_color=self.text_color, 
+                                                    border_width=1, fg_color="black")
+        
+        self.project_bar_frame.rowconfigure(0, weight=1)
+        self.project_bar_frame.columnconfigure(0, weight=1)
+        self.radio_button = customtkinter.CTkRadioButton(
+                                                    self.project_bar_frame, variable=self.radio_var, value=1, text=self.project_name, text_color=self.text_color, font=("Consolas",18, "bold"), border_color="darkgray", hover_color="#39C288", command=None)
+    
+    def destruct(self):
+        self.project_bar_frame.destroy()
 
 if __name__ == "__main__":
 
     app = App()
+    app.project_bar_maker()
     app.task_maker()
 
     # def on_closing():
