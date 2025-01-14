@@ -34,6 +34,10 @@ class App(customtkinter.CTk):
 
         # Sidebar frame
         self.frame1 = customtkinter.CTkFrame(self, corner_radius=10, width=220)
+        # Sidebar frame => New_project frame
+        self.new_project_frame = customtkinter.CTkFrame(self.frame1, corner_radius=10, fg_color="transparent", height=10)
+        # Sidebar frame => Project_list frame
+        self.project_list_frame = customtkinter.CTkFrame(self.frame1, corner_radius=10, fg_color="transparent")
         # Sidebar frame => Progress bar frame
         self.progressbar_frame = customtkinter.CTkFrame(self.frame1, corner_radius=10, fg_color="transparent", height=50, width=300)
         # Sidebar frame => Progress bar frame => left
@@ -56,14 +60,39 @@ class App(customtkinter.CTk):
         # ######################################################
 
         # Sidebar frame
-        self.frame1.rowconfigure((0,1), weight=1)
-        # self.frame1.columnconfigure()
+        self.frame1.rowconfigure((0,1,2), weight=1)
+        # self.frame1.rowconfigure(1, weight=1, minsize=500)
+        self.frame1.rowconfigure(1, weight=1)
+        self.frame1.columnconfigure(0, weight=1)
         self.frame1.grid(row=0, column=0, rowspan=2, padx=(5,2.5), pady=(5,2.5), sticky="nsew")
+        # New project button
+        self.new_project_frame.grid(row=0, sticky="nsew")
+        self.new_project_frame.rowconfigure(0, weight=0)
+        self.new_project_frame.columnconfigure(0, weight=1)
+        self.new_project_button = customtkinter.CTkButton(
+                                                    self.new_project_frame, text="New Project +", width=80, height=35, 
+                                                    font=("Calibri",15, "bold"), command=None, fg_color="transparent", border_color="darkgray", border_width=2)
+        self.new_project_button.grid(row=0, padx=(20,20), pady=(20,10), sticky="news", )
+        # Delete project button
+        self.delete_project_button = customtkinter.CTkButton(
+                                                    self.new_project_frame, text="Delete Project", width=80, height=35, 
+                                                    font=("Calibri",15, "bold"), command=None, fg_color="transparent", border_color="darkgray", border_width=2, hover_color=("crimson"))
+        self.delete_project_button.grid(row=1, padx=(20,20), pady=(10,20), sticky="nsew", )
+        # Projects list
+        self.project_list_frame.grid(row=1, sticky="nsew")
+        # self.project_list_frame.rowconfigure(0)
+        self.radio_button1 = customtkinter.CTkRadioButton(master=self.project_list_frame, value=0, text="Project 1", text_color="lightgreen", font=("Calibri",20, "bold"), border_color="white", corner_radius=2)
+        self.radio_button1.grid(row=0, padx=(10,10), pady=(10, 10), sticky="n")
+        self.radio_button2 = customtkinter.CTkRadioButton(master=self.project_list_frame, value=0, text="Project 2", font=("Calibri",20, "bold"))
+        self.radio_button2.grid(row=1, padx=(10,10), pady=(10, 10), sticky="n")
+
+
+        
         # Progress bar grid configure
         self.progressbar_frame.rowconfigure((0,1), weight=0)
         self.progressbar_frame.columnconfigure((0,1), weight=0)
         # Progress bar frame placement
-        self.progressbar_frame.grid(row=1,padx=(0,0), pady=(0,0), sticky="s")
+        self.progressbar_frame.grid(row=2,padx=(0,0), pady=(0,0), sticky="s")
         # Progress bar frame 'left' grid configure
         self.progressbar_frame_left.grid(row=1, column=0, sticky="s")
         # Progress text
