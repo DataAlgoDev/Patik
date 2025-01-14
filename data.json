@@ -1,8 +1,13 @@
 {
-    "task_data" : 
-    [
-        {"Task1":0}, 
-        {"Task2": 1}
+    "task_data": [
+        {
+            "Task 1": 1
+        },
+        {
+            "Task 2": 1
+        },
+        {
+            "Task 3": 0
+        }
     ]
-
 }
