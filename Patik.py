@@ -19,9 +19,11 @@ class App(customtkinter.CTk):
         self.title("Patik")
         self.geometry("700x600")
         self.resizable(height=True, width=True)
+
         # #########################
         # Configuring grid pattern: root/main app window [4x4 grid : (0,0),(0,1),(1.0),(1,1)]
         # #########################
+
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(1,weight=1)
@@ -46,8 +48,6 @@ class App(customtkinter.CTk):
         self.frame3 = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent", border_width=0)
         # Bottom frame => Inserter frame
         self.inserter_frame = customtkinter.CTkFrame(self.frame3, height=100, corner_radius=10, fg_color="black")
-        # Bottom frame => Task display frame
-        # Creating the task displayer frame
 
         # ######################################################
         # Grid configuration(Frames and Subframes) and placement
@@ -82,7 +82,8 @@ class App(customtkinter.CTk):
         self.project_title.grid(padx=(10,0), sticky="w")
 
         # Bottom frame [4x4 grid]
-        self.frame3.grid_rowconfigure(0, weight=0)
+        self.frame3.grid_rowconfigure(0, weight=0)              #!
+        self.frame3.grid_rowconfigure(1, weight=1)              #!
         # self.frame3.grid_rowconfigure(1, weight=1)
         self.frame3.grid_columnconfigure((0,1), weight=1)
         self.frame3.grid(row=1, column=1, padx=(2.5,5), pady=(2.5,5), sticky="nsew")
@@ -123,11 +124,11 @@ class App(customtkinter.CTk):
 
     def task_display_frame_creator(self):
             # frame3 => task_display_frame
-            self.task_display_frame = customtkinter.CTkFrame(self.frame3, corner_radius=10, height=200, fg_color="transparent")
+            self.task_display_frame = customtkinter.CTkScrollableFrame(self.frame3, corner_radius=10, fg_color="transparent", scrollbar_button_color="black")
             # Bottom frame => Task display frame
-            self.task_display_frame.rowconfigure(0, weight=0)
+            self.task_display_frame.rowconfigure(1, weight=0)
             self.task_display_frame.columnconfigure((0,1), weight=1)
-            self.task_display_frame.grid(row=1, columnspan=2, pady=(5,0), sticky="nsew")
+            self.task_display_frame.grid(row=1, columnspan=2, pady=(5,0), sticky="nsew") #!
 
     def add_new_task(self):
         new_task = self.textbox.get()
@@ -153,6 +154,16 @@ class App(customtkinter.CTk):
         self.task_display_frame_creator()
         # self.task_maker()
 
+    def remove_object(self, obj):
+        object_row_number = obj.row_number
+        print(object_row_number)
+        del self.temp_data_list[object_row_number]
+        del self.objects_list[object_row_number]
+        obj.destruct()
+        print(f"data after removal : {self.temp_data_list}")
+        
+        for i, obj in enumerate(self.objects_list):
+            obj.row_number = i
 
     # Task maker method : Creates task based on data from the local file
     def task_maker(self, row_number=None):
@@ -160,47 +171,29 @@ class App(customtkinter.CTk):
         if row_number:
             for task, value in self.temp_data_list[-1].items():
                 task, value = task, value
-            obj = self._task_creator(row_number, task, value)
-            self.objects_list.append(obj)
+            self._task_creator(row_number, task, value)
         else:
             for row_number, dixnry in enumerate(self.temp_data_list):
                 for task, value in dixnry.items():
                     task, value = task, value
                 self._task_creator(row_number, task, value)
-                obj = self._task_creator(row_number, task, value)
-                self.objects_list.append(obj)
-        # print(self.objects_list)
+        print(f"objects initial : {self.objects_list}, count : {len(self.objects_list)}")
 
-    # def _task_creater(self, row_number, task, value):
-    #     self.checkbox_frame = customtkinter.CTkFrame(self.task_display_frame, corner_radius=10, border_color="darkgray", border_width=1)
-    #     # self.checkbox_frame.rowconfigure(0, weight=0)
-    #     self.checkbox_frame.columnconfigure((0,1), weight=1)
-    #     # Bottom frame => Task display frame => checkbox 1 frame => Checkbox 1
-    #     self.checkbox = customtkinter.CTkCheckBox(self.checkbox_frame, text=f"{task}", font=("Consolas", 18, "bold"), onvalue=1, offvalue=0, command=None,checkbox_height=22, checkbox_width=22, corner_radius=5, border_width=3, variable=customtkinter.IntVar(value=value))
-    #     # Task del button
-    #     self.task_del_button = customtkinter.CTkButton(self.checkbox_frame, text="-", width=10, font=("Calibri",15, "bold"), fg_color="black", corner_radius=10, command=None, hover_color="crimson")
-        
-    #     # Placing del button
-    #     self.task_del_button.grid(row=row_number, column=1, padx=(0, 10), pady=(0,0), sticky="e")
-        
-    #     # Frame placement
-    #     self.checkbox_frame.grid(row=row_number, columnspan=2, pady=(5,0), sticky="nsew")
-    #     # Checkbox placement
-    #     self.checkbox.grid(row=row_number, column=0, padx=(22, 0), pady=(10, 10), sticky="w")
-    #     # return [self.c, self.d]
 
     def _task_creator(self, row_number, task, value):
-        obj = Taskbar(self.task_display_frame, task, value)
+        obj = Taskbar(self.task_display_frame, row_number, task, value)
 
-        obj.checkbox_frame.grid(row=row_number, columnspan=2, pady=(5,0), sticky="nsew")
-        obj.checkbox.grid(row=row_number, column=0, padx=(22, 0), pady=(10, 10), sticky="w")
+        obj.checkbox_frame.grid(row=row_number, columnspan=2, padx=(0,10), pady=(5,0), sticky="nsew")
+        obj.checkbox.grid(row=row_number, column=0, padx=(10, 0), pady=(10, 10), sticky="w")
         obj.task_del_button.grid(row=row_number, column=1, padx=(0, 10), pady=(0,0), sticky="e")
         
         self.objects_list.append(obj)
 
+
 class Taskbar():
-    def __init__(self, task_display_frame, task, value):
+    def __init__(self, task_display_frame,row_number, task, value):
         
+        self.row_number = row_number
         self.task = task
         self.value = value
 
@@ -211,13 +204,10 @@ class Taskbar():
 
         self.checkbox = customtkinter.CTkCheckBox(self.checkbox_frame, text=f"{task}", font=("Consolas", 18, "bold"), onvalue=1, offvalue=0, command=None,checkbox_height=22, checkbox_width=22, corner_radius=5, border_width=3, variable=customtkinter.IntVar(value=value))
 
-        self.task_del_button = customtkinter.CTkButton(self.checkbox_frame, text="-", width=10, font=("Calibri",15, "bold"), fg_color="black", corner_radius=10, command=None, hover_color="crimson")
+        self.task_del_button = customtkinter.CTkButton(self.checkbox_frame, text="-", width=10, font=("Calibri",15, "bold"), fg_color="black", corner_radius=10, command=lambda:app.remove_object(self), hover_color="crimson")
 
-
-        # self.checkbox_frame.grid(row=0, columnspan=2, pady=(5,0), sticky="nsew")
-        # self.checkbox.grid(row=0, column=0, padx=(22, 0), pady=(10, 10), sticky="w")
-        # self.task_del_button.grid(row=0, column=1, padx=(0, 10), pady=(0,0), sticky="e")
-
+    def destruct(self):
+        self.checkbox_frame.destroy()
 
 
 if __name__ == "__main__":
