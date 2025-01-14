@@ -6,6 +6,12 @@ import json
 with open("data.json") as file:
     data = json.load(file)
     
+# Store the list of projects
+project_names = list()
+for item in data.keys():
+    project_names.append(item)
+
+
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("green")
 
@@ -16,7 +22,7 @@ class App(customtkinter.CTk):
         self.wm_attributes("-alpha", 0.9) 
         # Window structure
         self.title("Patik")
-        self.geometry("700x600")
+        self.geometry("750x600")
         self.resizable(height=True, width=True)
 
         # #############################
@@ -35,9 +41,9 @@ class App(customtkinter.CTk):
         # Sidebar frame
         self.frame1 = customtkinter.CTkFrame(self, corner_radius=10, width=220)
         # Sidebar frame => New_project frame
-        self.new_project_frame = customtkinter.CTkFrame(self.frame1, corner_radius=10, fg_color="transparent", height=10)
+        self.new_project_frame = customtkinter.CTkFrame(self.frame1, corner_radius=10, fg_color="transparent")
         # Sidebar frame => Project_list frame
-        self.project_list_frame = customtkinter.CTkFrame(self.frame1, corner_radius=10, fg_color="transparent")
+        self.project_list_frame = customtkinter.CTkFrame(self.frame1, corner_radius=10, fg_color="transparent", border_width=1, border_color="darkgray")
         # Sidebar frame => Progress bar frame
         self.progressbar_frame = customtkinter.CTkFrame(self.frame1, corner_radius=10, fg_color="transparent", height=50, width=300)
         # Sidebar frame => Progress bar frame => left
@@ -60,10 +66,8 @@ class App(customtkinter.CTk):
         # ######################################################
 
         # Sidebar frame
-        self.frame1.rowconfigure((0,1,2), weight=1)
-        # self.frame1.rowconfigure(1, weight=1, minsize=500)
-        self.frame1.rowconfigure(1, weight=1)
-        self.frame1.columnconfigure(0, weight=1)
+        self.frame1.rowconfigure((1,2), weight=1)
+        self.frame1.columnconfigure(0, weight=1, minsize=270)
         self.frame1.grid(row=0, column=0, rowspan=2, padx=(5,2.5), pady=(5,2.5), sticky="nsew")
         # New project button
         self.new_project_frame.grid(row=0, sticky="nsew")
@@ -79,12 +83,6 @@ class App(customtkinter.CTk):
                                                     font=("Calibri",15, "bold"), command=None, fg_color="transparent", border_color="darkgray", border_width=2, hover_color=("crimson"))
         self.delete_project_button.grid(row=1, padx=(20,20), pady=(10,20), sticky="nsew", )
         # Projects list
-        self.project_list_frame.grid(row=1, sticky="nsew")
-        # self.project_list_frame.rowconfigure(0)
-        self.radio_button1 = customtkinter.CTkRadioButton(master=self.project_list_frame, value=0, text="Project 1", text_color="lightgreen", font=("Calibri",20, "bold"), border_color="white", corner_radius=2)
-        self.radio_button1.grid(row=0, padx=(10,10), pady=(10, 10), sticky="n")
-        self.radio_button2 = customtkinter.CTkRadioButton(master=self.project_list_frame, value=0, text="Project 2", font=("Calibri",20, "bold"))
-        self.radio_button2.grid(row=1, padx=(10,10), pady=(10, 10), sticky="n")
 
 
         
@@ -154,7 +152,7 @@ class App(customtkinter.CTk):
         # All Projects data from local file
         self.temp_data = globals()["data"]
         # List of taskbar key-value pair
-        self.temp_data_list = self.temp_data["task_data"]
+        self.temp_data_list = self.temp_data["Project 1"]
         # List for storing taskbar objects
         self.objects_list = list()
 
@@ -259,6 +257,11 @@ class App(customtkinter.CTk):
         obj.checkbox_frame.grid(row=row_number, columnspan=2, padx=(0,10), pady=(5,0), sticky="nsew")
         obj.checkbox.grid(row=row_number, column=0, padx=(10, 0), pady=(10, 10), sticky="w")
         obj.task_del_button.grid(row=row_number, column=1, padx=(0, 10), pady=(0,0), sticky="e")
+
+    def forget_project_bar(self, obj):
+        ...
+    def place_project_bar(self, obj):
+        ...
         
 # For creating taskbar objects
 class Taskbar():
@@ -288,20 +291,34 @@ class Taskbar():
     def destruct(self):
         self.checkbox_frame.destroy()
 
+class Project_Bar():
+    def __init__(self, parent_frame, row_num, project_name, value):
+        self.row_num = row_num
+        self.project_name = project_name
+        self.value = value
+        self.project_bar_frame = customtkinter.CTkFrame(
+                                                    parent_frame, corner_radius=10, border_color="darkgray", 
+                                                    border_width=1, fg_color="transparent")
+        self.checkbox_frame.rowconfigure(0, weight=0)
+        self.checkbox_frame.columnconfigure((0,1), weight=1)
+
+        self.radio_button1 = customtkinter.CTkRadioButton(master=self.project_list_frame, value={}, text={}, text_color="white", font=("Calibri",20, "bold"), border_color="white")
+        
+
 
 if __name__ == "__main__":
 
     app = App()
     app.task_maker()
 
-    def on_closing():
-        if messagebox.askokcancel("Quit", "Do you want to quit?"):
-            # save and close the file
-            data["task_data"] = app.temp_data_list
-            with open("data.json", "w") as file:
-                json.dump(data, file, indent=4)
-
-            app.destroy()  # Close the window
-    app.protocol("WM_DELETE_WINDOW", on_closing)
+    # def on_closing():
+    #     if messagebox.askokcancel("Quit", "Do you want to quit?"):
+    #         # save and close the file
+    #         data["task_data"] = app.temp_data_list
+    #         with open("data.json", "w") as file:
+    #             json.dump(data, file, indent=4)
+    #         # Close the window
+    #         app.destroy()
+    # app.protocol("WM_DELETE_WINDOW", on_closing)
     
     app.mainloop()
