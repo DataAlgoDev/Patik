@@ -7,33 +7,19 @@
             "Task 2": 1
         },
         {
-            "Task 3": 0
+            "Task 3": 1
         }
     ],
     "Project 2": [
         {
-            "Task 1": 0
-        },
-        {
-            "Task 2": 0
-        },
-        {
-            "Task 3": 1
-        }
-
-    ],
-    "Project 3": [
-        {
-            "Task 1": 0
-        },
-        {
-            "Task 2": 1
+            "Task 1": 1
         },
         {
             "Task 3": 0
+        },
+        {
+            "Task 4": 0
         }
-
-    ]
-
-
+    ],
+    "Project 3": []
 }
