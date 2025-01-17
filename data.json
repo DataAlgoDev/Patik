@@ -1,25 +1,10 @@
 {
-    "Project 1": [
+    "Flask": [
         {
-            "Task 1": 1
+            "Create landing page": 1
         },
         {
-            "Task 2": 1
-        },
-        {
-            "Task 3": 1
+            "Setup backend": 1
         }
-    ],
-    "Project 2": [
-        {
-            "Task 1": 1
-        },
-        {
-            "Task 3": 0
-        },
-        {
-            "Task 4": 0
-        }
-    ],
-    "Project 3": []
+    ]
 }
