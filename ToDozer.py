@@ -18,7 +18,7 @@ class App(customtkinter.CTk):
         height = 600
         x = (screen_width // 2) - (width // 2)
         y = (screen_height // 2) - (height // 2)
-        self.title("Patik")
+        self.title("ToDozer")
         self.geometry(f"{width}x{height}+{x}+{y}")
         self.resizable(height=True, width=True)
 
