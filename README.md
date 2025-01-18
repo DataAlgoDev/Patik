@@ -1,4 +1,5 @@
-# Patik
+# ToDozer
+
 Custom Tkinter based To Do Lists App
 
 Base App:
