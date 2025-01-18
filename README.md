@@ -1,12 +1,10 @@
 # Patik
-Custom Tkinter based Project and Task manager
-
-Still working on it...Maybe available soon in PyPi :)
+Custom Tkinter based To Do Lists App
 
 Base App:
 
-![image](/images/Patik_base.png) 
+![image](/images/todozer1.png) 
 
 Added Project switching
 
-![image](/images/patik_2.png)
+![image](/images/todozer2.png)
