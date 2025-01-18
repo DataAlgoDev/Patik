@@ -1,10 +1,6 @@
 from tkinter import messagebox
 import customtkinter
 import json
-
-# Need exception handling here              #@
-with open("data.json") as file:
-    data = json.load(file)
     
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("green")
@@ -81,15 +77,17 @@ class App(customtkinter.CTk):
         self.new_project_frame.columnconfigure(0, weight=1)
         self.new_project_button = customtkinter.CTkButton(
                                                     self.new_project_frame, text="New Project +", width=80, height=35, 
-                                                    font=("Calibri",15, "bold"), command=self.create_new_project, fg_color="transparent", border_color="darkgray", border_width=2)
+                                                    font=("Calibri",15, "bold"), command=self.create_helper, fg_color="transparent", border_color="darkgray", border_width=2)
         self.new_project_button.grid(row=0, padx=(10,10), pady=(20,10), sticky="news")
+        self.input_box = None
         # Delete project button
         self.delete_project_button = customtkinter.CTkButton(
                                                     self.new_project_frame, text="Delete Project", width=80, height=35, 
                                                     font=("Calibri",15, "bold"), command=self.del_project, fg_color="transparent", border_color="darkgray", border_width=2, hover_color=("crimson"))
-        self.delete_project_button.grid(row=1, padx=(10,10), pady=(10,20), sticky="nsew", )
-
+        self.delete_project_button.grid(row=1, padx=(10,10), pady=(10,20), sticky="nsew")
         self.deletion_window = None
+
+        # self.deletion_window = None
         
         # Projects list frame
         self.project_list_frame.rowconfigure(0, weight=1)
@@ -149,7 +147,7 @@ class App(customtkinter.CTk):
         self.temp_data = globals()["data"]
 
     # Used during startup and on project deletion
-    def full_init(self):
+    def full_init(self) -> None:
         # -----------------
         # Project variables
         # -----------------
@@ -170,7 +168,7 @@ class App(customtkinter.CTk):
         self.progress_bar_placer()
 
     # Used during project switching and when added new project
-    def project_init(self, new_index):
+    def project_init(self, new_index : int) -> None:
         if not self.temp_project_names:
             return
         self.curr_project_row = self.project_selector(new_index)
@@ -179,25 +177,26 @@ class App(customtkinter.CTk):
         self.progress_bar_placer()
 
     # To change title
-    def title_maker(self, title=None):
+    def title_maker(self, title : str = None) -> None:
         self.project_title.grid(padx=(10,0), sticky="w")
         if title:
             self.project_title.configure(text=title)
         else:
             self.project_title.configure(text="Begin...")
 
-    # Creates new project object
-    def create_new_project(self):
-        self.dialog = customtkinter.CTkInputDialog(text="Enter Project Name", title="New Project", font=("Consolas",15, "bold"), button_fg_color="black")
-        new_project = self.dialog.get_input()
+    def create_helper(self) -> None:
+        if not self.input_box:
+            self.input_box = CreateBox()
+        self.input_box.update()
+        self.input_box.focus()
 
-        if not new_project or new_project in self.temp_project_names:
+    # Creates new project object
+    def create_new_project(self, new_project : str) -> None:
+        if new_project in self.temp_project_names:
             return
-        
         self.temp_data[new_project] = []
         self.temp_project_names.append(new_project)
         new_row = len(self.temp_project_names) - 1
-        print(new_row)
         if new_row == 0:
             self.full_init()
             return
@@ -206,7 +205,7 @@ class App(customtkinter.CTk):
         self.project_switch(new_proj_obj)
 
     # For making a project curr project. last project by default
-    def project_selector(self, index):
+    def project_selector(self, index : int) -> int:
         index = index
         if not self.temp_project_names:
             self.curr_project = None
@@ -214,28 +213,30 @@ class App(customtkinter.CTk):
         # Currently selected project name
         self.curr_project = self.temp_project_names[index]
         # List of tasks inside the projects
-        self.temp_data_list = self.temp_data[self.curr_project]
+        self.temp_data_list = self.temp_data[self.curr_project][:]
         return index
         
-    def del_project(self):
-        if self.deletion_window is None:
+    def del_project(self) -> None:
+        if not self.deletion_window:
             self.deletion_window = DeleteBox()
+        self.deletion_window.construct_optionmenu()
         self.deletion_window.update()
         self.deletion_window.focus()
 
-    def delete_selected_project(self, proj_name):
+    def delete_selected_project(self, proj_name : str) -> None:
         # Modifying main dict
         del self.temp_data[proj_name]
         self.clear_all_tasks()
         self.null_message_forget()
         for obj in self.project_objects_list:
             obj.destruct()
+        self.project_objects_list.clear()
+        self.temp_project_names.clear()
         self.project_title.grid_forget()
         self.full_init()
-        self.deletion_window.construct_optionmenu()
 
-    # Appends a new task at the end             #@@@@
-    def add_new_task(self):
+    # Appends a new task at the end
+    def add_new_task(self) -> None:
         new_task = self.textbox.get()
         if new_task:
             self.temp_data_list.append({new_task: 0})
@@ -245,7 +246,7 @@ class App(customtkinter.CTk):
             self.progress_maker()
 
     # Removes selected task
-    def remove_task(self, obj):
+    def remove_task(self, obj) -> None:
         object_row_number = obj.row_number
 
         del_obj = self.task_objects_list[object_row_number]
@@ -264,7 +265,7 @@ class App(customtkinter.CTk):
             self.null_message_placer()
 
     # Deletes all the taskbars in task_display_frame
-    def clear_all_tasks(self):
+    def clear_all_tasks(self) -> None:
         if not self.task_objects_list:
             return
         self.temp_data_list.clear()
@@ -275,7 +276,7 @@ class App(customtkinter.CTk):
         self.null_message_placer()
 
     # Checks the status of checkboxes
-    def mark_checker(self, obj):
+    def mark_checker(self, obj) -> None:
         for task, value in self.temp_data_list[obj.row_number].items():
             task, value = task, value
         if value:
@@ -285,7 +286,7 @@ class App(customtkinter.CTk):
         self.progress_maker()
     
     # Progress bar maker
-    def progress_bar_placer(self):
+    def progress_bar_placer(self) -> None:
         # Progress bar frame placement
         self.progressbar_frame.grid(row=2,padx=(0,0), pady=(0,0), sticky="s")
         # Progress bar frame 'left' grid configure
@@ -296,7 +297,7 @@ class App(customtkinter.CTk):
         self.progressbar.grid(padx=(5,5), pady=(5,5), sticky="se")
 
     # Function to keep track of the progress
-    def progress_maker(self):
+    def progress_maker(self) -> None:
         total_task_count = len(self.temp_data_list)
         completed_task_count = 0
         for item in self.temp_data_list:
@@ -319,20 +320,20 @@ class App(customtkinter.CTk):
 
         self.progress_text.configure(text=f"{completed_task_count}/{total_task_count}")
 
-    def null_message_placer(self):
+    def null_message_placer(self) -> None:
         self.null_message.grid(row=1, columnspan=2, sticky="nsew")
 
-    def null_message_forget(self):
+    def null_message_forget(self) -> None:
         self.null_message.grid_forget()
 
     # Task maker method : Creates task based on data from the local file
-    def task_maker(self, row_number=None):
+    def task_maker(self, row_number : int = None) -> None:
         if row_number is not None:
             if row_number == 0:
                 self.null_message_forget()
             for task, value in self.temp_data_list[-1].items():
                 task, value = task, value
-                obj = Taskbar(self.task_display_frame, row_number, task, value)
+                obj = TaskBar(self.task_display_frame, row_number, task, value)
                 self.place_taskbar(obj, row_number)
                 self.task_objects_list.append(obj)
         elif not self.temp_data_list:
@@ -341,43 +342,43 @@ class App(customtkinter.CTk):
             for row_number, dixnry in enumerate(self.temp_data_list):
                 for task, value in dixnry.items():
                     task, value = task, value 
-                obj = Taskbar(self.task_display_frame, row_number, task, value)
+                obj = TaskBar(self.task_display_frame, row_number, task, value)
                 self.place_taskbar(obj, row_number)
                 self.task_objects_list.append(obj)
 
         self.progress_maker()
 
     # Releases the grid dependancies of a taskbar object
-    def forget_taskbar(self, obj):
+    def forget_taskbar(self, obj) -> None:
         obj.checkbox_frame.grid_forget()
         obj.checkbox.grid_forget()
         obj.task_del_button.grid_forget()
 
     # Places the taskbar object in frame
-    def place_taskbar(self, obj, row_number):
+    def place_taskbar(self, obj, row_number : int) -> None:
         obj.row_number = row_number
         obj.checkbox_frame.grid(row=row_number, columnspan=2, padx=(0,10), pady=(5,0), sticky="nsew")
         obj.checkbox.grid(row=row_number, column=0, padx=(10, 0), pady=(10, 10), sticky="w")
         obj.task_del_button.grid(row=row_number, column=1, padx=(0, 10), pady=(0,0), sticky="e")
 
-    def project_maker(self, proj_row=None):
+    def project_maker(self, proj_row : int = None) -> None:
         if proj_row is None:
             for proj_row, name in enumerate(self.temp_project_names):
-                obj = Project_Bar(self.project_list_frame, proj_row, name)
+                obj = ProjectBar(self.project_list_frame, proj_row, name)
                 self.place_project_bar(obj, proj_row)
                 self.project_objects_list.append(obj)
         else:
             name = self.temp_project_names[proj_row]
-            obj = Project_Bar(self.project_list_frame, proj_row, name)
+            obj = ProjectBar(self.project_list_frame, proj_row, name)
             self.place_project_bar(obj, proj_row)
             self.project_objects_list.append(obj) 
 
-    def place_project_bar(self, proj_obj, proj_row):
+    def place_project_bar(self, proj_obj, proj_row : int) -> None:
         proj_obj.row_number = proj_row
         proj_obj.project_bar_frame.grid(row=proj_row, padx=(0, 5), pady=(5, 5), sticky="nsew")
         proj_obj.radio_button.grid(row=proj_row, padx=(10, 10), pady=(10, 10), sticky="nsew")
 
-    def project_switch(self, proj_obj):
+    def project_switch(self, proj_obj) -> None:
         if self.curr_project_row is None:
             self.curr_project_row = 0
         curr_index = self.curr_project_row
@@ -397,9 +398,8 @@ class App(customtkinter.CTk):
             proj_obj.toggle_radio(1)
 
 # For creating taskbar objects
-class Taskbar():
+class TaskBar():
     def __init__(self, task_display_frame, row_number, task, value):
-        
         self.row_number = row_number
         self.task = task
         self.value = value
@@ -418,10 +418,10 @@ class Taskbar():
                                                 self.checkbox_frame, text="-", width=10, font=("Calibri",15, "bold"), fg_color="black", corner_radius=10, command=lambda:app.remove_task(self), hover_color="crimson")
         
     # Destroys the taskbar frame and all child widgets
-    def destruct(self):
+    def destruct(self) -> None:
         self.checkbox_frame.destroy()
 
-class Project_Bar():
+class ProjectBar():
     def __init__(self, project_list_frame, proj_row, project_name):
         self.proj_row = proj_row
         self.project_name = project_name
@@ -440,10 +440,10 @@ class Project_Bar():
         if self.project_name == app.curr_project:
             self.toggle_radio(1)
         
-    def destruct(self):
+    def destruct(self) -> None:
         self.project_bar_frame.destroy()
 
-    def toggle_radio(self, button_val):
+    def toggle_radio(self, button_val : int) -> None:
         if button_val:
             self.radio_var.set(1)
             self.radio_button.configure(text_color="#39C288")
@@ -453,8 +453,46 @@ class Project_Bar():
             self.radio_button.configure(text_color=self.text_color)
             self.project_bar_frame.configure(border_color=self.text_color)
 
-    def destruct(self):
+    def destruct(self) -> None:
         self.project_bar_frame.destroy()
+
+class CreateBox(customtkinter.CTkToplevel):
+    def __init__(self):
+        super().__init__()
+        # Window structure
+        width = 350
+        height = 200
+        x = 750
+        y = 500
+        self.title("Create New Poject")
+        self.geometry(f"{width}x{height}+{x}+{y}")
+        self.rowconfigure((0,1,2), weight=0)
+        self.columnconfigure((0,1), weight=1)
+        
+        self.label = customtkinter.CTkLabel(self, text="Create A New Project", font=("Consolas", 18, "bold"))
+        self.label.grid(row=0, columnspan=2, padx=20, pady=20, sticky="nsew")
+
+        self.textbox = customtkinter.CTkEntry(self, width=250, placeholder_text="Project Name", font=("Calibri",15, "bold"))
+        self.textbox.bind("<Return>", lambda event : self.project_parse())
+        # Text box Placement
+        self.textbox.grid(row=1, columnspan=2, padx=(20, 20), pady=(10, 20), sticky="ns")
+
+        self.ok_button = customtkinter.CTkButton(self, text="Ok", width=80, font=("Calibri",15, "bold"), command=self.project_parse)
+        self.ok_button.grid(row=2, column=0, padx=20, pady=(10, 20), sticky="e")
+
+        self.cancel_button = customtkinter.CTkButton(self, text="Cancel", width=80, fg_color="crimson", font=("Calibri",15, "bold"), command=self.reset)
+        self.cancel_button.grid(row=2, column=1, padx=20, pady=(10, 20), sticky="w")
+
+    def project_parse(self) -> None:
+            new_project = self.textbox.get()
+            if new_project:
+                app.create_new_project(new_project)
+                self.textbox.delete(0,30)
+                self.reset()
+
+    def reset(self) -> None:
+        self.destroy()
+        app.input_box=None
 
 class DeleteBox(customtkinter.CTkToplevel):
     def __init__(self):
@@ -479,7 +517,7 @@ class DeleteBox(customtkinter.CTkToplevel):
                                                     font=("Calibri",15, "bold"), command=self.parse_project)
         self.del_button.grid(row=1, column=1, padx=20, pady=(20, 10), sticky="w")
 
-    def construct_optionmenu(self):
+    def construct_optionmenu(self) -> None:
         self.project_names = app.temp_project_names
         self.optionmenu = customtkinter.CTkOptionMenu(
                                                     self, dynamic_resizing=False, values=self.project_names, 
@@ -487,21 +525,35 @@ class DeleteBox(customtkinter.CTkToplevel):
         self.optionmenu.set("Select..")
         self.optionmenu.grid(row=1, padx=20, pady=(20, 10), sticky="e")
     
-
-    def parse_project(self):
+    def parse_project(self) -> None:
         project_name = self.optionmenu.get()
 
         if not project_name == "Select..":
             app.delete_selected_project(project_name)
-            self.destroy()
-
+            self.construct_optionmenu()
+            self.reset()
+    
+    def reset(self) -> None:
+        self.destroy()
+        app.deletion_window=None
 
 if __name__ == "__main__":
 
+    try:
+        with open("data.json", "r") as file:
+                data = json.load(file)
+
+    except FileNotFoundError as e:
+        with open("data.json", "w") as file:
+            json.dump({}, file, indent=4)
+
+        with open("data.json", "r") as file:
+                data = json.load(file)
+
     app = App()
     app.full_init()
-    
-    def on_closing():
+
+    def on_closing() -> None:
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             # save and close the file
             data = app.temp_data
@@ -510,5 +562,6 @@ if __name__ == "__main__":
             # Close the window
             app.destroy()
     app.protocol("WM_DELETE_WINDOW", on_closing)
-    
+
     app.mainloop()
+        
